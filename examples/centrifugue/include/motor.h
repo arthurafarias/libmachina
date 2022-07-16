@@ -1,8 +1,8 @@
 #ifndef _MOTOR_H
 #define _MOTOR_H
 
-#include "DataTypes.h"
-#include "StateMachine.h"
+#include "data_types.h"
+#include "state_machine.h"
 
 // Motor object structure
 typedef struct
@@ -14,13 +14,13 @@ typedef struct
 typedef struct
 {
     INT speed;
-} MotorData;
+} motor_data_t;
 
 // State machine event functions
-EVENT_DECLARE(MTR_SetSpeed, MotorData)
-EVENT_DECLARE(MTR_Halt, NoEventData)
+EVENT_DECLARE(mtr_set_speed, motor_data_t)
+EVENT_DECLARE(mtr_halt, no_event_data_t)
 
 // Public accessor
-GET_DECLARE(MTR_GetSpeed, INT);
+GET_DECLARE(mtr_get_speed, INT);
 
 #endif // _MOTOR_H

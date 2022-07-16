@@ -1,51 +1,51 @@
 #include "x_allocator.h"
 #include "fb_allocator.h"
-#include "DataTypes.h"
-#include "Fault.h"
+#include "data_types.h"
+#include "fault.h"
 #include <string.h>
 
-static void* XALLOC_PutAllocatorPtrInBlock(void* block, ALLOC_Allocator* allocator);
-static ALLOC_Allocator* XALLOC_GetAllocatorPtrFromBlock(void* block);
-static ALLOC_Allocator* XALLOC_GetAllocator(XAllocData* self, size_t size);
+static void* xalloc_put_allocator_ptr_in_block(void* block, alloc_allocator_t* allocator);
+static alloc_allocator_t* xalloc_get_allocator_ptr_from_block(void* block);
+static alloc_allocator_t* xalloc_get_allocator(x_alloc_data_t* self, size_t size);
 
 //----------------------------------------------------------------------------
-// XALLOC_PutAllocatorPtrInBlock
+// xalloc_put_allocator_ptr_in_block
 //----------------------------------------------------------------------------
-static void* XALLOC_PutAllocatorPtrInBlock(void* block, ALLOC_Allocator* allocator)
+static void* xalloc_put_allocator_ptr_in_block(void* block, alloc_allocator_t* allocator)
 {
-    ALLOC_Allocator** pAllocatorInBlock;
+    alloc_allocator_t** p_allocator_in_block;
 
     ASSERT_TRUE(block);
     ASSERT_TRUE(allocator);
 
-    // Cast raw block memory to ALLOC_Allocator**
-    pAllocatorInBlock = (ALLOC_Allocator**)(block);
+    // Cast raw block memory to alloc_allocator_t**
+    p_allocator_in_block = (alloc_allocator_t**)(block);
 
     // Store the allocator pointer in the memory block 
-    *pAllocatorInBlock = allocator;
+    *p_allocator_in_block = allocator;
 
-    // Advance the pointer past the ALLOC_Allocator* and return a
+    // Advance the pointer past the alloc_allocator_t* and return a
     // pointer to the client's memory region
-    return ++pAllocatorInBlock;
+    return ++p_allocator_in_block;
 }
 
 //----------------------------------------------------------------------------
-// XALLOC_GetAllocatorPtrFromBlock
+// xalloc_get_allocator_ptr_from_block
 //----------------------------------------------------------------------------
-static ALLOC_Allocator* XALLOC_GetAllocatorPtrFromBlock(void* block)
+static alloc_allocator_t* xalloc_get_allocator_ptr_from_block(void* block)
 {
-    ALLOC_Allocator** pAllocatorInBlock;
+    alloc_allocator_t** p_allocator_in_block;
 
     ASSERT_TRUE(block);
 
-    // Cast raw memory block to ALLOC_Allocator**
-    pAllocatorInBlock = (ALLOC_Allocator**)(block);
+    // Cast raw memory block to alloc_allocator_t**
+    p_allocator_in_block = (alloc_allocator_t**)(block);
 
-    // Backup one ALLOC_Allocator* position to get the stored allocator instance
-    pAllocatorInBlock--;
+    // Backup one alloc_allocator_t* position to get the stored allocator instance
+    p_allocator_in_block--;
 
     // Return the allocator instance stored within the memory block
-    return *pAllocatorInBlock;
+    return *p_allocator_in_block;
 }
 
 //----------------------------------------------------------------------------
@@ -53,36 +53,36 @@ static ALLOC_Allocator* XALLOC_GetAllocatorPtrFromBlock(void* block)
 //----------------------------------------------------------------------------
 static void* XALLOC_GetBlockPtr(void* block)
 {
-    ALLOC_Allocator** pAllocatorInBlock;
+    alloc_allocator_t** p_allocator_in_block;
 
     ASSERT_TRUE(block);
 
-    // Cast the client memory to ALLOC_Allocator* 
-    pAllocatorInBlock = (ALLOC_Allocator**)(block);
+    // Cast the client memory to alloc_allocator_t* 
+    p_allocator_in_block = (alloc_allocator_t**)(block);
 
-    // Back up one ALLOC_Allocator* position and return raw memory block pointer
-    return --pAllocatorInBlock;
+    // Back up one alloc_allocator_t* position and return raw memory block pointer
+    return --p_allocator_in_block;
 }
 
 //----------------------------------------------------------------------------
-// XALLOC_GetAllocator
+// xalloc_get_allocator
 //----------------------------------------------------------------------------
-static ALLOC_Allocator* XALLOC_GetAllocator(XAllocData* self, size_t size)
+static alloc_allocator_t* xalloc_get_allocator(x_alloc_data_t* self, size_t size)
 {
     UINT16 i = 0;
-    ALLOC_Allocator* pAllocator = NULL;
+    alloc_allocator_t* pAllocator = NULL;
 
     ASSERT_TRUE(self);
 
-    // Each block stores additional meta data (i.e. an ALLOC_Allocator pointer). 
+    // Each block stores additional meta data (i.e. an alloc_allocator_t pointer). 
     // Add overhead for the additional memory required.
     size += XALLOC_BLOCK_META_DATA_SIZE;
 
     // Iterate over all allocators 
-    for (i=0; i<self->maxAllocators; i++)
+    for (i=0; i<self->allocators_max; i++)
     {
         // Can the allocator instance handle the requested size?
-        if (self->allocators[i] && self->allocators[i]->blockSize >= size)
+        if (self->allocators[i] && self->allocators[i]->block_size >= size)
         {
             // Return allocator instance to handle memory request
             pAllocator = self->allocators[i];
@@ -96,26 +96,26 @@ static ALLOC_Allocator* XALLOC_GetAllocator(XAllocData* self, size_t size)
 //----------------------------------------------------------------------------
 // XALLOC_Alloc
 //----------------------------------------------------------------------------
-void* XALLOC_Alloc(XAllocData* self, size_t size)
+void* xalloc_alloc(x_alloc_data_t* self, size_t size)
 {
-    ALLOC_Allocator* pAllocator;
+    alloc_allocator_t* pAllocator;
     void* pBlockMemory = NULL;
     void* pClientMemory = NULL;
 
     ASSERT_TRUE(self);
 
     // Get an allocator instance to handle the memory request
-    pAllocator = XALLOC_GetAllocator(self, size);
+    pAllocator = xalloc_get_allocator(self, size);
 
     // An allocator found to handle memory request?
     if (pAllocator)
     {
         // Get a fixed memory block from the allocator instance
-        pBlockMemory = ALLOC_Alloc(pAllocator, size + XALLOC_BLOCK_META_DATA_SIZE);
+        pBlockMemory = alloc_alloc(pAllocator, size + XALLOC_BLOCK_META_DATA_SIZE);
         if (pBlockMemory)
         {
-            // Set the block ALLOC_Allocator* ptr within the raw memory block region
-            pClientMemory = XALLOC_PutAllocatorPtrInBlock(pBlockMemory, pAllocator);
+            // Set the block alloc_allocator_t* ptr within the raw memory block region
+            pClientMemory = xalloc_put_allocator_ptr_in_block(pBlockMemory, pAllocator);
         }
     }
     else
@@ -130,56 +130,56 @@ void* XALLOC_Alloc(XAllocData* self, size_t size)
 //----------------------------------------------------------------------------
 // XALLOC_Free
 //----------------------------------------------------------------------------
-void XALLOC_Free(void* ptr)
+void xalloc_free(void* ptr)
 {
-    ALLOC_Allocator* pAllocator = NULL;
+    alloc_allocator_t* pAllocator = NULL;
     void* pBlock = NULL;
 
     if (!ptr)
         return;
 
     // Extract the original allocator instance from the caller's block pointer
-    pAllocator = XALLOC_GetAllocatorPtrFromBlock(ptr);
+    pAllocator = xalloc_get_allocator_ptr_from_block(ptr);
     if (pAllocator)
     {
         // Convert the client pointer into the original raw block pointer
         pBlock = XALLOC_GetBlockPtr(ptr);
 
         // Deallocate the fixed memory block
-        ALLOC_Free(pAllocator, pBlock);
+        alloc_free(pAllocator, pBlock);
     }
 } 
 
 //----------------------------------------------------------------------------
 // XALLOC_Realloc
 //----------------------------------------------------------------------------
-void* XALLOC_Realloc(XAllocData* self, void *ptr, size_t new_size)
+void* xalloc_realloc(x_alloc_data_t* self, void *ptr, size_t new_size)
 {
     void* pNewMem = NULL;
-    ALLOC_Allocator* pOldAllocator = NULL;
+    alloc_allocator_t* pOldAllocator = NULL;
     size_t oldSize = 0;
 
     ASSERT_TRUE(self);
 
     if (!ptr)
-        pNewMem = XALLOC_Alloc(self, new_size);
+        pNewMem = xalloc_alloc(self, new_size);
     else if (0 == new_size)
-        XALLOC_Free(ptr);
+        xalloc_free(ptr);
     else
     {
         // Create a new memory block
-        pNewMem = XALLOC_Alloc(self, new_size);
+        pNewMem = xalloc_alloc(self, new_size);
         if (pNewMem != 0)
         {
             // Get the original allocator instance from the old memory block
-            pOldAllocator = XALLOC_GetAllocatorPtrFromBlock(ptr);
-            oldSize = pOldAllocator->blockSize - XALLOC_BLOCK_META_DATA_SIZE;
+            pOldAllocator = xalloc_get_allocator_ptr_from_block(ptr);
+            oldSize = pOldAllocator->block_size - XALLOC_BLOCK_META_DATA_SIZE;
 
             // Copy the bytes from the old memory block into the new (as much as will fit)
             memcpy(pNewMem, ptr, (oldSize < new_size) ? oldSize : new_size);
 
             // Free the old memory block
-            XALLOC_Free(ptr);
+            xalloc_free(ptr);
         }
     }
 
@@ -190,7 +190,7 @@ void* XALLOC_Realloc(XAllocData* self, void *ptr, size_t new_size)
 //----------------------------------------------------------------------------
 // XALLOC_Calloc
 //----------------------------------------------------------------------------
-void* XALLOC_Calloc(XAllocData* self, size_t num, size_t size)
+void* xalloc_calloc(x_alloc_data_t* self, size_t num, size_t size)
 {
     void* pMem = NULL;
     size_t n;
@@ -201,7 +201,7 @@ void* XALLOC_Calloc(XAllocData* self, size_t num, size_t size)
     n = num * size;
 
     // Allocate the memory
-    pMem = XALLOC_Alloc(self, n);
+    pMem = xalloc_alloc(self, n);
 
     if (pMem)
     {

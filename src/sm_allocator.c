@@ -17,44 +17,44 @@ ALLOC_DEFINE(smDataAllocator32, BLOCK_32_SIZE, MAX_32_BLOCKS)
 ALLOC_DEFINE(smDataAllocator128, BLOCK_128_SIZE, MAX_128_BLOCKS)
 
 // An array of allocators sorted by smallest block first
-static ALLOC_Allocator* allocators[] = {
+static alloc_allocator_t* allocators[] = {
     &smDataAllocator32Obj,
     &smDataAllocator128Obj
 };
 
 #define MAX_ALLOCATORS   (sizeof(allocators) / sizeof(allocators[0]))
 
-static XAllocData self = { allocators, MAX_ALLOCATORS };
+static x_alloc_data_t self = { allocators, MAX_ALLOCATORS };
 
 //----------------------------------------------------------------------------
-// SMALLOC_Alloc
+// smalloc_alloc
 //----------------------------------------------------------------------------
-void* SMALLOC_Alloc(size_t size)
+void* smalloc_alloc(size_t size)
 {
-    return XALLOC_Alloc(&self, size);
+    return xalloc_alloc(&self, size);
 }
 
 //----------------------------------------------------------------------------
-// SMALLOC_Free
+// smalloc_free
 //----------------------------------------------------------------------------
-void SMALLOC_Free(void* ptr)
+void smalloc_free(void* ptr)
 {
-    XALLOC_Free(ptr);
+    xalloc_free(ptr);
 }
 
 //----------------------------------------------------------------------------
-// SMALLOC_Realloc
+// smalloc_realloc
 //----------------------------------------------------------------------------
-void* SMALLOC_Realloc(void *ptr, size_t new_size)
+void* smalloc_realloc(void *ptr, size_t new_size)
 {
-    return XALLOC_Realloc(&self, ptr, new_size);
+    return xalloc_realloc(&self, ptr, new_size);
 }
 
 //----------------------------------------------------------------------------
-// SMALLOC_Calloc
+// smalloc_calloc
 //----------------------------------------------------------------------------
-void* SMALLOC_Calloc(size_t num, size_t size)
+void* smalloc_calloc(size_t num, size_t size)
 {
-    return XALLOC_Calloc(&self, num, size);
+    return xalloc_calloc(&self, num, size);
 }
 

@@ -21,7 +21,7 @@
 // ALLOC_DEFINE(myAllocator512, BLOCK_512_SIZE, MAX_512_BLOCKS)
 //
 // // An array of allocators sorted by smallest to largest block 
-// static ALLOC_Allocator* allocators[] = {
+// static alloc_allocator_t* allocators[] = {
 //    &myAllocator32Obj,
 //    &myAllocator128Obj,
 //    &myAllocator512Obj
@@ -55,21 +55,21 @@ extern "C" {
 #endif
 
 // Overhead bytes added to each XALLOC memory block
-#define XALLOC_BLOCK_META_DATA_SIZE  sizeof(ALLOC_Allocator*)
+#define XALLOC_BLOCK_META_DATA_SIZE  sizeof(alloc_allocator_t*)
 
 typedef struct
 {
     // Array of allocator instances sorted from smallest to largest block
-    ALLOC_Allocator* const *allocators;
+    alloc_allocator_t* const *allocators;
 
     // Number of allocator instances stored within the allocators array
-    const UINT16 maxAllocators;
-} XAllocData;
+    const UINT16 allocators_max;
+} x_alloc_data_t;
 
-void* XALLOC_Alloc(XAllocData* self, size_t size);
-void XALLOC_Free(void* ptr);
-void* XALLOC_Realloc(XAllocData* self, void *ptr, size_t new_size);
-void* XALLOC_Calloc(XAllocData* self, size_t num, size_t size);
+void* xalloc_alloc(x_alloc_data_t* self, size_t size);
+void xalloc_free(void* ptr);
+void* xalloc_realloc(x_alloc_data_t* self, void *ptr, size_t new_size);
+void* xalloc_calloc(x_alloc_data_t* self, size_t num, size_t size);
 
 #ifdef __cplusplus
 }

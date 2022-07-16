@@ -4,8 +4,8 @@
 // single block size. 
 //
 // Create an allocator instance using the ALLOC_DEFINE macro. Call 
-// ALLOC_Init() one time at startup. ALLOC_Alloc() allocates a fixed 
-// memory block. ALLOC_Free() frees the block. 
+// alloc_init() one time at startup. alloc_alloc() allocates a fixed 
+// memory block. alloc_free() frees the block. 
 //
 // #include "fb_allocator.h"
 // ALLOC_DEFINE(myAllocator, 32, 5)
@@ -13,16 +13,16 @@
 // void main() 
 // {
 //      void* block;
-//      ALLOC_Init();
-//      block = ALLOC_Alloc(myAllocator, 32);
-//      ALLOC_Free(myAllocator, block);
+//      alloc_init();
+//      block = alloc_alloc(myAllocator, 32);
+//      alloc_free(myAllocator, block);
 // }
 
 #ifndef _FB_ALLOCATOR_H
 #define _FB_ALLOCATOR_H
 
 #include <stdlib.h>
-#include "DataTypes.h"
+#include "data_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,24 +32,24 @@ typedef void* ALLOC_HANDLE;
 
 typedef struct 
 {
-    void* pNext;
-} ALLOC_Block;
+    void* p_next;
+} allock_block;
 
-// Use ALLOC_DEFINE to declare an ALLOC_Allocator object
+// Use ALLOC_DEFINE to declare an alloc_allocator_t object
 typedef struct
 {
     const char* name;
-    const char* pPool;
-    const size_t objectSize;
-    const size_t blockSize;
-    const UINT32 maxBlocks;
-    ALLOC_Block* pHead;
-    UINT16 poolIndex;
-    UINT16 blocksInUse;
-    UINT16 maxBlocksInUse;
+    const char* p_pool;
+    const size_t object_size;
+    const size_t block_size;
+    const UINT32 blocks_max;
+    allock_block* p_head;
+    UINT16 pool_index;
+    UINT16 blocks_in_use;
+    UINT16 max_blocks_in_use;
     UINT16 allocations;
     UINT16 deallocations;
-} ALLOC_Allocator;
+} alloc_allocator_t;
 
 // Align fixed blocks on X-byte boundary based on CPU architecture.
 // Set value to 1, 2, 4 or 8.
@@ -63,27 +63,27 @@ typedef struct
     (((_numToRound_ + _multiple_ - 1) / _multiple_) * _multiple_)
 
 // Ensure the memory block size is: (a) is aligned on desired boundary and (b) at
-// least the size of a ALLOC_Allocator*. 
+// least the size of a alloc_allocator_t*. 
 #define ALLOC_BLOCK_SIZE(_size_) \
-    (ALLOC_MAX((ALLOC_ROUND_UP(_size_, ALLOC_MEM_ALIGN)), sizeof(ALLOC_Allocator*)))
+    (ALLOC_MAX((ALLOC_ROUND_UP(_size_, ALLOC_MEM_ALIGN)), sizeof(alloc_allocator_t*)))
 
 // Defines block memory, allocator instance and a handle. On the example below, 
-// the ALLOC_Allocator instance is myAllocatorObj and the handle is myAllocator.
+// the alloc_allocator_t instance is myAllocatorObj and the handle is myAllocator.
 // _name_ - the allocator name
 // _size_ - fixed memory block size in bytes
 // _objects_ - number of fixed memory blocks 
 // e.g. ALLOC_DEFINE(myAllocator, 32, 10)
 #define ALLOC_DEFINE(_name_, _size_, _objects_) \
     static char _name_##Memory[ALLOC_BLOCK_SIZE(_size_) * (_objects_)] = { 0 }; \
-    static ALLOC_Allocator _name_##Obj = { #_name_, _name_##Memory, _size_, \
+    static alloc_allocator_t _name_##Obj = { #_name_, _name_##Memory, _size_, \
         ALLOC_BLOCK_SIZE(_size_), _objects_, NULL, 0, 0, 0, 0, 0 }; \
     static ALLOC_HANDLE _name_ = &_name_##Obj;
 
-void ALLOC_Init(void);
-void ALLOC_Term(void);
-void* ALLOC_Alloc(ALLOC_HANDLE hAlloc, size_t size);
-void* ALLOC_Calloc(ALLOC_HANDLE hAlloc, size_t num, size_t size);
-void ALLOC_Free(ALLOC_HANDLE hAlloc, void* pBlock);
+void alloc_init(void);
+void alloc_term(void);
+void* alloc_alloc(ALLOC_HANDLE hAlloc, size_t size);
+void* alloc_calloc(ALLOC_HANDLE hAlloc, size_t num, size_t size);
+void alloc_free(ALLOC_HANDLE hAlloc, void* pBlock);
 
 #ifdef __cplusplus
 }
