@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This library is a state machine implementation adapted from [https://github.com/endurodave/C_StateMachine](Code Pen State Machine) as a library indeed to be used and embedded in any code.
+This library is a state machine implementation adapted from [Code Project](https://github.com/endurodave/C_StateMachine) as a library indeed to be used and embedded in any code.
 
 It follows libc naming standards and uses cmake as build system.
 
